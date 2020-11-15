@@ -15,8 +15,6 @@ export class Renderer extends Drawing {
   private zoomMax: number;
   private fontFamily: string;
   private fontSize: number;
-  private paramSize: number;
-  private paramSpacing: number;
 
   constructor() {
     super();
@@ -27,9 +25,6 @@ export class Renderer extends Drawing {
     this.zoomMax = 10;
     this.fontFamily = "courier";
     this.fontSize = 20;
-
-    this.paramSize = 10;
-    this.paramSpacing = 4;
 
     this.nodes = new Set();
     /**Add the node rendering pass
@@ -48,6 +43,7 @@ export class Renderer extends Drawing {
       let params: Array<string>;
       let longestParamName = "";
       let longestParamWidth = 0;
+      let nameWidth = 0;
 
       this.nodes.forEach((node) => {
         ctx.save();
@@ -59,8 +55,8 @@ export class Renderer extends Drawing {
         longestParamWidth = 0;
 
         if (node.hasParams()) {
-          params = node.getParams();
-          nodeHeight = params.length * this.fontSize;
+          params = node.getInputNames();
+          nodeHeight = (params.length + 1) * this.fontSize;
           for (let param of params) {
             if (param.length > longestParamName.length) longestParamName = param;
           }
@@ -71,7 +67,8 @@ export class Renderer extends Drawing {
         }
 
         ctx.font = `${this.fontSize}px ${this.fontFamily}`;
-        nodeWidth += ctx.measureText(node.name).width;
+        nameWidth = ctx.measureText(node.name).width;
+        nodeWidth += nameWidth;
 
         //FILL BACKGROUND OF NODE
         ctx.fillStyle = node.color;
@@ -82,7 +79,7 @@ export class Renderer extends Drawing {
           ctx.fillStyle = node.textcolor;
           let ih = 0;
           for (let i = 0; i < params.length; i++) {
-            ih = this.fontSize * (i + 0.75)
+            ih = this.fontSize * (i + 1 + 0.75)
             ctx.fillText(params[i], 0, ih);
             ctx.fillRect(-10, ih-(this.fontSize/2), 10, 10);
           }
@@ -90,7 +87,7 @@ export class Renderer extends Drawing {
 
         //FILL NAME
         ctx.fillStyle = node.textcolor;
-        ctx.fillText(node.name, longestParamWidth, nodeHeight / 2 + (this.fontSize / 4));
+        ctx.fillText(node.name, (nodeWidth / 2) - nameWidth/2, this.fontSize);
 
         ctx.restore();
       });

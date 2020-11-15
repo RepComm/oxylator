@@ -1,8 +1,8 @@
 
-import { Component } from "@repcomm/exponent-ts";
+import { Component, Panel, Knob } from "@repcomm/exponent-ts";
 
 export type WebAudioNodeType = "keyboard" | "analyser" | "biquadfilter" | "constant" | "convolver" | "delay" | "dynamicscompressor" | "gain" | "iirfilter" | "mediaelementsource" | "mediastreamdestination" | "mediastreamsource" | "mediastreamtracksource" | "oscillator" | "panner" | "periodicwave" | "scriptprocessor" | "stereopanner" | "waveshaper" | "destination";
-export const WebAudioNodeTypeStrings = ["keyboard" , "analyser" , "biquadfilter" , "constant" , "convolver" , "delay" , "dynamicscompressor" , "gain" , "iirfilter" , "mediaelementsource" , "mediastreamdestination" , "mediastreamsource" , "mediastreamtracksource" , "oscillator" , "panner" , "periodicwave" , "scriptprocessor" , "stereopanner" , "waveshaper" , "destination"];
+export const WebAudioNodeTypeStrings = ["keyboard", "analyser", "biquadfilter", "constant", "convolver", "delay", "dynamicscompressor", "gain", "iirfilter", "mediaelementsource", "mediastreamdestination", "mediastreamsource", "mediastreamtracksource", "oscillator", "panner", "periodicwave", "scriptprocessor", "stereopanner", "waveshaper", "destination"];
 
 export interface CreateAudioNodeOptions {
   /**For "mediaelementsource"*/
@@ -125,8 +125,123 @@ export interface NodeCreateOptions {
   name?: string;
 }
 
-export class Node {
-  private controls: Map<string, Component>;
+export type NodeControlType = "knob" | "slider" | "field";
+
+/**A re-target-able, control input for Node audio params and fields
+ * 
+ * Can change type dynamically with setType
+ */
+export class NodeControl extends Panel {
+  private target: AudioParam | any;
+  private targetPropName: string;
+
+  private control: Component;
+  private label: Component;
+  private type: NodeControlType;
+
+  constructor() {
+    super();
+    this.label = new Component().make("span");
+    // this.setType("knob");
+    this.textContent("Node Control");
+    this.mount(this.label);
+  }
+  /**Set the label text of this NodeControl*/
+  textContent(str: string): this {
+    this.label.textContent(str);
+    return this;
+  }
+  private onChangeType(oldType: NodeControlType, currentType: NodeControlType) {
+
+  }
+  setType(type: NodeControlType): this {
+    if (this.type == type) {
+      //throw `Cannot change type from ${this.type} to ${type} as they are the same`;
+    }
+    this.onChangeType(this.type, type);
+    this.type = type;
+
+    this.clearUI();
+    if (this.type === "knob") {
+      this.control = new Knob()
+      .setImage("knob01.svg")
+      .on("mouseup", (evt) => {
+        let v: number = (this.control as Knob).getValue();
+        console.log("Control value is now", v);
+
+        if (this.hasTarget()) {
+          this.setValue(v);
+        } else {
+          console.log("Has target ->", this.hasTarget());
+        }
+      });
+    }
+
+    this.control.mount(this);
+    return this;
+  }
+  hasTarget(): boolean {
+    return this.target != null && this.target != undefined;
+  }
+  private onChangeTarget(oldTarget: any, oldProp: string, currentTarget: any, currentProp: string) {
+    //TODO
+  }
+  setPropertyInfluence(target: any, propName: string): this {
+    this.onChangeTarget(this.target, this.targetPropName, target, propName);
+    this.target = target;
+    this.targetPropName = propName;
+    //Copy value from the internal property
+    this.setValue(this.getIntervalValue());
+    return this;
+  }
+  setAudioParamInfluence(target: AudioParam): this {
+    this.setPropertyInfluence(target, "value");
+    return this;
+  }
+  /**Get the value represented by the control*/
+  getValue(): number {
+    //TODO
+    return 0;
+  }
+  /**The the value of the control*/
+  setValue(v: number, setInteral: boolean = true): this {
+    //TODO
+
+    if (setInteral) this.setInteralValue(v);
+    return this;
+  }
+  /**Get the value of the property that the control is responsible for changing*/
+  getIntervalValue(): number {
+    return this.target[this.targetPropName];
+  }
+  /**Sets the value of the property that the control is responsible for changing*/
+  setInteralValue(v: number): this {
+    this.target[this.targetPropName] = v;
+    return this;
+  }
+  /**Has UI element or not*/
+  hasControl(): boolean {
+    return this.control != null && this.control != undefined;
+  }
+  /**Cleans up UI part of the control*/
+  clearUI(): this {
+    //TODO
+    if (this.hasControl()) {
+      this.control.unmount();
+      this.control.removeAllListeners();
+    }
+    return this;
+  }
+  clearInfluence(): this {
+    this.target = null;
+    this.targetPropName = null;
+    this.clearUI();
+    return this;
+  }
+}
+
+export class Node extends Panel {
+  private controls: Map<string, NodeControl>;
   private _x: number;
   private _y: number;
   /**Internal web AudioNode type*/
@@ -140,6 +255,9 @@ export class Node {
   private internalParams: AudioParams;
 
   constructor(options?: NodeCreateOptions) {
+    super();
+    this.styleItem("display", "flex");
+    this.styleItem("flex-direction", "column");
     this.controls = new Map();
     this.x = options?.x || 0;
     this.y = options?.y || 0;
@@ -158,50 +276,69 @@ export class Node {
   get y(): number {
     return this._y;
   }
-  set x (v: number) {
+  set x(v: number) {
     this._x = v;
   }
-  set y (v: number) {
+  set y(v: number) {
     this._y = v;
   }
-  set color (c: string) {
+  set color(c: string) {
     this._color = c;
   }
-  get color (): string {
+  get color(): string {
     return this._color;
   }
-  set name (s: string) {
+  set name(s: string) {
     this._name = s;
   }
-  get name (): string {
+  get name(): string {
     return this._name;
   }
-  set textcolor (c: string) {
+  set textcolor(c: string) {
     this._textcolor = c;
   }
-  get textcolor (): string {
+  get textcolor(): string {
     return this._textcolor;
   }
-  disconnectAll () {
+  disconnectAll() {
     //TODO
   }
-  getInternal (): AudioNode {
+  getInternal(): AudioNode {
     return this.internal;
   }
-  setInternal (node: AudioNode): this {
+  setInternal(node: AudioNode): this {
     this.internal = node;
     this.internalParams = getAudioNodeParams(this.internal);
+
+    //TODO - recycle
+    // this.clearControls();
+
+    //Populate UI controls for audio params
+    let paramNames = this.getParams();
+    let param: AudioParam;
+
+    for (let paramName of paramNames) {
+      param = this.getParam(paramName);
+      this.createControl(paramName)
+        .setType("knob")
+        .textContent(paramName)
+        .setAudioParamInfluence(param);
+    }
+
     return this;
   }
-  getParam (id: string): AudioParam {
+  getParam(id: string): AudioParam {
     return this.internalParams[id];
   }
-  hasParams (): boolean {
+  hasParams(): boolean {
     return this.internalParams != null && this.internalParams != undefined;
   }
-  getParams (): Array<string> {
-    let result = Object.keys(this.internalParams);
-    result.push("audio in");
+  getParams(): Array<string> {
+    return Object.keys(this.internalParams);
+  }
+  getInputNames (): Array<string> {
+    let result = this.getParams();
+    result.push("audio");
     return result;
   }
   /**Set the type of node
@@ -209,13 +346,8 @@ export class Node {
    */
   setType(type: WebAudioNodeType, ctx: AudioContext, options?: CreateAudioNodeOptions): this {
     this.internalType = type;
-    try {
-      this.disconnectAll();
-      this.setInternal(createAudioNode(ctx, type, options));
-      this.getInternal()
-    } catch (ex) {
-      throw ex;
-    }
+    this.disconnectAll();
+    this.setInternal(createAudioNode(ctx, type, options));
     return this;
   }
   /**Get the type of node*/
@@ -228,18 +360,30 @@ export class Node {
   }
   /**Gets a control
    */
-  getControl(id: string): Component {
+  getControl(id: string): NodeControl {
     if (!this.hasControl(id)) throw `No control with id ${id} found!`;
     return this.controls.get(id);
   }
   /**Sets a control 
    */
-  setControl(id: string, ctrl: Component): this {
+  private setControl(id: string, ctrl: NodeControl): this {
     this.controls.set(id, ctrl);
+    ctrl.mount(this);
     return this;
   }
-  /**Get all the control ids
-   */
+  private clearControls(): this {
+    this.controls.forEach((ctrl) => {
+      ctrl.clearInfluence();
+    });
+    this.controls.clear();
+    return this;
+  }
+  private createControl(id: string): NodeControl {
+    let ctrl = new NodeControl();
+    this.setControl(id, ctrl);
+    return ctrl;
+  }
+  /**Get all the control ids*/
   getControls(): string[] {
     let result: Array<string> = new Array(this.controls.size);
     let ind: number = 0;
@@ -249,7 +393,7 @@ export class Node {
     });
     return result;
   }
-  toJSON (): NodeJSON {
+  toJSON(): NodeJSON {
     return {
       x: this.x,
       y: this.y,
@@ -259,11 +403,11 @@ export class Node {
       textcolor: this.textcolor
     };
   }
-  connect (dest: Node): this {
+  connect(dest: Node): this {
     this.getInternal().connect(dest.getInternal());
     return this;
   }
-  static fromJSON (json: NodeJSON, ctx: AudioContext, options?: CreateAudioNodeOptions): Node {
+  static fromJSON(json: NodeJSON, ctx: AudioContext, options?: CreateAudioNodeOptions): Node {
     let result = new Node();
     result.x = json.x;
     result.y = json.y;

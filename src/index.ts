@@ -91,6 +91,7 @@ function setupDesignMode() {
   const uiCreateNodeButton = new Button()
     .on("click", () => {
       let node = renderer.createNode();
+      node.mount(uiDesignMenu);
       console.log(node);
     })
     .textContent("Create Node")

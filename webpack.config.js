@@ -9,7 +9,8 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         { from: 'src/index.html', to: "index.html" },
-        { from: "src/index.css", to: "index.css" }
+        { from: "src/index.css", to: "index.css" },
+        { from: "src/knob01.svg", to: "knob01.svg" }
       ],
     })
   ],
