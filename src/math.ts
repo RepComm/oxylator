@@ -32,3 +32,11 @@ export function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w
   ctx.quadraticCurveTo(x, y, x + radius.tl, y);
   ctx.closePath();
 }
+
+export function pointInDOMRect (x: number, y: number, rect: DOMRect): boolean {
+  return pointInRect(x, y, rect.left, rect.top, rect.right, rect.bottom);
+}
+
+export function pointInRect (x: number, y: number, minx: number, miny: number, maxx: number, maxy: number): boolean {
+  return x > minx && y > miny && x < maxx && y < maxy;
+}
