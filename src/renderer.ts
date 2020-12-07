@@ -1,7 +1,7 @@
 
 import { Node, NodeCreateOptions } from "./node";
 import { Drawing } from "@repcomm/exponent-ts";
-import { roundRect } from "./math";
+import { pointInRect, roundRect } from "./math";
 
 /**
  * 
@@ -90,6 +90,8 @@ export class Renderer extends Drawing {
         ctx.fillText(node.name, (nodeWidth / 2) - nameWidth/2, this.fontSize);
 
         ctx.restore();
+        node.width = nodeWidth;
+        node.height = nodeHeight;
       });
       ctx.restore();
     });
@@ -126,6 +128,44 @@ export class Renderer extends Drawing {
     this._y += movementY;
     this.setNeedsRedraw(true);
     return this;
+  }
+  selectNodeAtScreenPoint (x: number, y: number): Node {
+    x = this.screenToWorldX(x);
+    y = this.screenToWorldY(y);
+
+    // this.context.fillStyle = "white";
+    // this.context.fillRect(x, y, 20, 20);
+
+    return this.selectNodeAtWorldPoint(
+      x,
+      y
+    );
+  }
+  selectNodeAtWorldPoint (x: number, y: number): Node {
+    let result: Node;
+
+    for (let node of this.nodes) {
+      if (node.pointInRect(x, y)) {
+        result = node;
+        break;
+      }
+    };
+
+    return result;
+  }
+  screenToWorldX (x: number): number {
+    x += this._x;
+    x *= this.zoom;
+    x -= this.rect.left;
+    x -= this.width/2;
+    return x;
+  }
+  screenToWorldY (y: number): number {
+    y += this._y;
+    y *= this.zoom;
+    y -= this.rect.top;
+    y -= this.height/2;
+    return y;
   }
   addNode(node: Node): this {
     if (this.hasNode(node)) throw `Node ${node} already added, cannot add more than once`;

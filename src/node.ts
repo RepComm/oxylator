@@ -1,5 +1,6 @@
 
 import { Component, Panel, Knob } from "@repcomm/exponent-ts";
+import { pointInRect } from "./math";
 
 export type WebAudioNodeType = "keyboard" | "analyser" | "biquadfilter" | "constant" | "convolver" | "delay" | "dynamicscompressor" | "gain" | "iirfilter" | "mediaelementsource" | "mediastreamdestination" | "mediastreamsource" | "mediastreamtracksource" | "oscillator" | "panner" | "periodicwave" | "scriptprocessor" | "stereopanner" | "waveshaper" | "destination";
 export const WebAudioNodeTypeStrings = ["keyboard", "analyser", "biquadfilter", "constant", "convolver", "delay", "dynamicscompressor", "gain", "iirfilter", "mediaelementsource", "mediastreamdestination", "mediastreamsource", "mediastreamtracksource", "oscillator", "panner", "periodicwave", "scriptprocessor", "stereopanner", "waveshaper", "destination"];
@@ -240,10 +241,16 @@ export class NodeControl extends Panel {
   }
 }
 
+export interface NodeRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export class Node extends Panel {
   private controls: Map<string, NodeControl>;
-  private _x: number;
-  private _y: number;
+  private nodeRect: NodeRect;
   /**Internal web AudioNode type*/
   private internalType: WebAudioNodeType;
   /**Internal web AudioNode*/
@@ -259,8 +266,14 @@ export class Node extends Panel {
     this.styleItem("display", "flex");
     this.styleItem("flex-direction", "column");
     this.controls = new Map();
-    this.x = options?.x || 0;
-    this.y = options?.y || 0;
+
+    this.nodeRect = {
+      x: options?.x || 0,
+      y: options?.y || 0,
+      width: 0,
+      height: 0
+    };
+
     if (options?.internalType) {
       if (!options.audioContext) throw `Must pass audioContext in NodeCreateOptions if passing internalType! type was ${options.internalType}, ctx was ${options.audioContext}`;
       this.setType(options.internalType, options.audioContext);
@@ -271,16 +284,28 @@ export class Node extends Panel {
   }
 
   get x(): number {
-    return this._x;
+    return this.nodeRect.x;
   }
   get y(): number {
-    return this._y;
+    return this.nodeRect.y;
   }
   set x(v: number) {
-    this._x = v;
+    this.nodeRect.x = v;
   }
   set y(v: number) {
-    this._y = v;
+    this.nodeRect.y = v;
+  }
+  get width (): number {
+    return this.nodeRect.width;
+  }
+  set width (v: number) {
+    this.nodeRect.width = v;
+  }
+  get height (): number {
+    return this.nodeRect.height;
+  }
+  set height (v: number) {
+    this.nodeRect.height = v;
   }
   set color(c: string) {
     this._color = c;
@@ -414,5 +439,8 @@ export class Node extends Panel {
     result.name = json.name;
     result.setType(json.type, ctx, options);
     return result;
+  }
+  pointInRect (x: number, y: number): boolean {
+    return pointInRect(x, y, this.x, this.y, this.x+this.width, this.y+this.height);
   }
 }

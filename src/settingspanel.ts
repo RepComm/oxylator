@@ -61,7 +61,7 @@ export class SettingsOption extends Panel {
         return (this.control as Knob).getValue();
         break;
       case "number-raw":
-        return (this.control.element as HTMLInputElement).value;
+        return parseFloat((this.control.element as HTMLInputElement).value);
         break;
       case "string":
         return (this.control.element as HTMLInputElement).value;

@@ -17,6 +17,8 @@ import { WebAudioNodeTypeStrings } from "./node";
 import { SettingsPanel } from "./settingspanel";
 import { pointInDOMRect } from "./math";
 
+import { Node } from "./node";
+
 runOnce();
 
 const componentRoot = new Component()
@@ -77,6 +79,8 @@ on(document.body, "wheel", (evt: WheelEvent) => {
   MOUSE_WHEEL_DELTA_Y = evt.deltaY;
 });
 
+let selectedNode: Node = null;
+
 function doRendererInput () {
   let moveSpeed = settings.getValue("input-move-speed");
   if (settings.getValue("input-move-scale")) moveSpeed *= renderer.zoom;
@@ -84,7 +88,19 @@ function doRendererInput () {
   if (input.pointerPrimary) {
     let mx = input.raw.consumeMovementX() * 1.8;
     let my = input.raw.consumeMovementY() * 1.8;
-    renderer.moveCenter(mx * renderer.zoom, my * renderer.zoom);
+
+    if (!selectedNode) {
+      selectedNode = renderer.selectNodeAtScreenPoint(input.raw.pointer.x, input.raw.pointer.y);
+    }
+    if (selectedNode) {
+      selectedNode.x += mx;
+      selectedNode.y += my;
+      renderer.setNeedsRedraw();
+    } else {
+      renderer.moveCenter(mx * renderer.zoom, my * renderer.zoom);
+    }
+  } else {
+    selectedNode = null;
   }
   if (MOUSE_WHEEL_DELTA_Y != 0) {
     onInputZoom(MOUSE_WHEEL_DELTA_Y);
