@@ -17,13 +17,13 @@
   "author": "RepComm",
   "license": "Unlicense",
   "devDependencies": {
-    "@babel/core": "^7.12.3",
+    "@babel/core": "^7.12.9",
     "@babel/plugin-transform-runtime": "^7.12.1",
-    "@babel/preset-env": "^7.12.1",
-    "@babel/preset-typescript": "^7.12.1",
-    "babel-loader": "^8.1.0",
+    "@babel/preset-env": "^7.12.7",
+    "@babel/preset-typescript": "^7.12.7",
+    "babel-loader": "^8.2.2",
     "babel-plugin-transform-class-properties": "^6.24.1",
-    "copy-webpack-plugin": "^6.2.1",
+    "copy-webpack-plugin": "^6.4.0",
     "webpack": "^4.44.2",
     "webpack-cli": "^3.3.12"
   },
@@ -39,7 +39,7 @@
     ]
   },
   "dependencies": {
-    "@repcomm/exponent-ts": "^1.0.13",
+    "@repcomm/exponent-ts": "^1.1.0",
     "@repcomm/gameinput-ts": "^1.0.15"
   }
 }

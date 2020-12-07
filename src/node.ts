@@ -145,7 +145,7 @@ export class NodeControl extends Panel {
     this.label = new Component().make("span");
     // this.setType("knob");
     this.textContent("Node Control");
-    this.mount(this.label);
+    this.label.mount(this);
   }
   /**Set the label text of this NodeControl*/
   textContent(str: string): this {
@@ -176,6 +176,7 @@ export class NodeControl extends Panel {
           console.log("Has target ->", this.hasTarget());
         }
       });
+      (this.control as Knob).container.removeClasses("exponent-square-container");
     }
 
     this.control.mount(this);

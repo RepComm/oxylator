@@ -155,14 +155,14 @@ export class Renderer extends Drawing {
   }
   screenToWorldX (x: number): number {
     x += this._x;
-    x *= this.zoom;
+    x /= this.zoom;
     x -= this.rect.left;
     x -= this.width/2;
     return x;
   }
   screenToWorldY (y: number): number {
     y += this._y;
-    y *= this.zoom;
+    y /= this.zoom;
     y -= this.rect.top;
     y -= this.height/2;
     return y;

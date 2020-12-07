@@ -22,7 +22,8 @@ import { Node } from "./node";
 runOnce();
 
 const componentRoot = new Component()
-  .useNative(get("container"));
+  .useNative(get("container"))
+  .addClasses("exponent-panel");
 
 const uiRoot = new DualPanel()
   .id("ui")
@@ -79,6 +80,7 @@ on(document.body, "wheel", (evt: WheelEvent) => {
   MOUSE_WHEEL_DELTA_Y = evt.deltaY;
 });
 
+let prevSelectedNode: Node = null;
 let selectedNode: Node = null;
 
 function doRendererInput () {
@@ -86,11 +88,19 @@ function doRendererInput () {
   if (settings.getValue("input-move-scale")) moveSpeed *= renderer.zoom;
 
   if (input.pointerPrimary) {
+    //TODO - secondary is also triggerying primary for some reason
+    // console.log("Prim");
     let mx = input.raw.consumeMovementX() * 1.8;
     let my = input.raw.consumeMovementY() * 1.8;
 
     if (!selectedNode) {
       selectedNode = renderer.selectNodeAtScreenPoint(input.raw.pointer.x, input.raw.pointer.y);
+      if (selectedNode) {
+        if (prevSelectedNode) prevSelectedNode.unmount();
+        selectedNode.mount(uiDesignMenu);
+      }
+    } else {
+      prevSelectedNode = selectedNode;
     }
     if (selectedNode) {
       selectedNode.x += mx;
@@ -135,10 +145,11 @@ const audioCtx: AudioContext = new AudioContext({
 });
 window["audioCtx"] = audioCtx;
 
-function setupDesignMode() {
-  const uiDesignMenu = new Panel()
-    .styleItem("background-color", "#0f0f0f");
+const uiDesignMenu = new Panel()
+  .styleItem("background-color", "#0f0f0f")
+  .styleItem("flex-direction", "column");
 
+function setupDesignMode() {
   uiContext.addContext("design", uiDesignMenu);
 
   const uiDesignButton = new Button()
@@ -146,7 +157,6 @@ function setupDesignMode() {
       uiContext.switchContext("design");
     })
     .textContent("design")
-    .styleItem("height", "100%")
     .mount(uiRootMenu);
 
   const uiCreateNodeButton = new Button()
@@ -156,7 +166,7 @@ function setupDesignMode() {
       console.log(node);
     })
     .textContent("Create Node")
-    .styleItem("width", "100%")
+    .styleItem("flex", "0.1")
     .mount(uiDesignMenu);
 }
 
@@ -173,7 +183,6 @@ function setupSettingsMode() {
       uiContext.switchContext("settings");
     })
     .textContent("settings")
-    .styleItem("height", "100%")
     .mount(uiRootMenu);
 
   settings.create("input-move-speed", "number-raw", "Movement Speed", 3);
