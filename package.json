@@ -39,7 +39,7 @@
     ]
   },
   "dependencies": {
-    "@repcomm/exponent-ts": "^1.1.0",
+    "@repcomm/exponent-ts": "^1.1.1",
     "@repcomm/gameinput-ts": "^1.0.15"
   }
 }

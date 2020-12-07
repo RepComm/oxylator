@@ -142,7 +142,7 @@ export class NodeControl extends Panel {
 
   constructor() {
     super();
-    this.label = new Component().make("span");
+    this.label = new Component().make("span").addClasses("node-control-label");
     // this.setType("knob");
     this.textContent("Node Control");
     this.label.mount(this);
